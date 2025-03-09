@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Class Monitor Voting</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        button { margin-left: 10px; }
+        .monitor-votes { margin-top: 20px; font-size: 18px; }
+        .vote-count { font-size: 14px; color: gray; }
+    </style>
+</head>
+<body>
+    <h1>Class Monitor Voting</h1>
+    
+    <form id="voteForm">
+        <input type="text" id="name" placeholder="Enter your name" required>
+        <select id="monitor">
+            <option value="Suresh">Suresh</option>
+            <option value="Deephank">Deephank</option>
+            <option value="Abhik">Abhik</option>
+        </select>
+        <button type="submit">Vote</button>
+    </form>
+
+    <h2>Vote Counts</h2>
+    <div id="monitorVotes">
+        <p class="monitor-votes">Suresh: <span id="sureshVotes" class="vote-count">0</span></p>
+        <p class="monitor-votes">Deephank: <span id="deephankVotes" class="vote-count">0</span></p>
+        <p class="monitor-votes">Abhik: <span id="abhikVotes" class="vote-count">0</span></p>
+    </div>
+
+    <h2>Total Votes: <span id="totalVotes">0</span></h2>
+
+    <script>
+        const API_URL = "https://crudcrud.com/api/537c6a259795412ab486d198254a8758/votes";
+        const form = document.getElementById("voteForm");
+        const nameInput = document.getElementById("name");
+        const monitorSelect = document.getElementById("monitor");
+        const totalVotesEl = document.getElementById("totalVotes");
+
+        const voteCounts = { Suresh: 0, Deephank: 0, Abhik: 0 };
+
+        async function fetchVotes() {
+            try {
+                const response = await fetch(API_URL);
+                const votes = await response.json();
+                updateVoteCounts(votes);
+            } catch (error) {
+                console.error("Error fetching votes:", error);
+            }
+        }
+
+        async function addVote(event) {
+            event.preventDefault();
+            const name = nameInput.value.trim();
+            const monitor = monitorSelect.value;
+            if (!name) return alert("Please enter a name");
+
+            try {
+                await fetch(API_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ name, monitor }),
+                });
+                fetchVotes();
+                nameInput.value = "";
+            } catch (error) {
+                console.error("Error adding vote:", error);
+            }
+        }
+
+        function updateVoteCounts(votes) {
+            voteCounts.Suresh = 0;
+            voteCounts.Deephank = 0;
+            voteCounts.Abhik = 0;
+
+            votes.forEach((vote) => {
+                if (voteCounts[vote.monitor] !== undefined) {
+                    voteCounts[vote.monitor]++;
+                }
+            });
+
+            document.getElementById("sureshVotes").textContent = voteCounts.Suresh;
+            document.getElementById("deephankVotes").textContent = voteCounts.Deephank;
+            document.getElementById("abhikVotes").textContent = voteCounts.Abhik;
+            totalVotesEl.textContent = votes.length;
+        }
+
+        form.addEventListener("submit", addVote);
+        fetchVotes();
+    </script>
+</body>
+</html>
